@@ -1,0 +1,20 @@
+# 虚拟环境
+.venv/
+
+# 环境变量文件（防止敏感信息泄露）
+.env
+.env.*
+
+# IDE
+.idea/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# 系统文件
+Thumbs.db
+.DS_Store
