@@ -28,6 +28,16 @@ def save_session():
 def generate_session_name():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+#加载所有会话列表信息
+def load_session_list():
+    session_list = []
+    if os.path.exists("session"):
+        file_list = os.listdir("session")
+        for filename in file_list:
+            if filename.endswith(".json"):
+                session_list.append(filename[:-5])
+
+    return session_list
 
 #设置页面配置项
 st.set_page_config(
@@ -92,6 +102,20 @@ client = OpenAI(api_key=os.environ.get('DEEPSEEK_API_KEY'),
 with st.sidebar:
     #会话信息
     st.header("会话信息")
+
+    #会话历史
+    st.text("会话历史")
+    session_list = load_session_list()
+    for session in session_list:
+        col1,col2 = st.columns([4,1])
+        with col1:
+            #加载会话信息
+            if st.button(session,width="stretch",icon="📄",key=f"load_{session}"):
+                pass
+        with col2:
+            #删除按键
+            if st.button("",width="stretch",icon="❌",key=f"delete_{session}"):
+                pass
 
     #新建会话
     if st.button("新建会话",width="stretch",icon = "🖊"):
