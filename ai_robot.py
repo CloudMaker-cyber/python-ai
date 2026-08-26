@@ -1,6 +1,33 @@
 import streamlit as st
 import os
 from openai import OpenAI
+from datetime import datetime
+import json
+
+
+#保存会话信息函数
+def save_session():
+    if st.session_state.current_session:
+        # 构建新的会话对象
+        session_date = {
+            "nick_name": st.session_state.current_session,
+            "nature": st.session_state.nature,
+            "current_session": st.session_state.current_session,
+            "messages": st.session_state.messages
+        }
+
+        # 如果session目录不存在，就创建一个
+        if not os.path.exists("session"):
+            os.makedirs("session")
+
+        # 保存会话数据
+        with open(f"session/{st.session_state.current_session}.json", "w", encoding="utf-8") as f:
+            json.dump(session_date, f, ensure_ascii=False, indent=2)
+
+#生成会话名字函数
+def generate_session_name():
+    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
 
 #设置页面配置项
 st.set_page_config(
@@ -28,6 +55,10 @@ if "nick_name" not in st.session_state:
 #伴侣性格
 if "nature" not in st.session_state:
     st.session_state.nature = "活泼开朗的东北姑娘"
+#会话名称
+if "current_session" not in st.session_state:
+    st.session_state.current_session = generate_session_name()
+
 
 #展示聊天信息
 for message in st.session_state.messages:#存储类型：{"role": "user或assistant", "content": prompt}
@@ -59,6 +90,22 @@ client = OpenAI(api_key=os.environ.get('DEEPSEEK_API_KEY'),
 
 #左侧的侧边栏-with：streamlit中上下文管理器
 with st.sidebar:
+    #会话信息
+    st.header("会话信息")
+
+    #新建会话
+    if st.button("新建会话",width="stretch",icon = "🖊"):
+        #保存当前会话
+        save_session()
+        #保存新建会话信息（需要重置st.session_state.messages和st.session_state.current_session)
+        if st.session_state.messages:        #如果存在会话信息,才能新建
+            st.session_state.messages = []
+            st.session_state.current_session = generate_session_name()
+            save_session()
+            st.rerun()        #重新运行页面,保证新页面能渲染出来
+
+
+
     st.subheader("伴侣设置")
     #昵称
     nick_name = st.text_input("伴侣名称",placeholder="请输入伴侣名称", value = st.session_state.nick_name)
