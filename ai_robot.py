@@ -10,18 +10,18 @@ def save_session():
     if st.session_state.current_session:
         # 构建新的会话对象
         session_date = {
-            "nick_name": st.session_state.current_session,
+            "nick_name": st.session_state.nick_name,
             "nature": st.session_state.nature,
             "current_session": st.session_state.current_session,
             "messages": st.session_state.messages
         }
 
-        # 如果session目录不存在，就创建一个
-        if not os.path.exists("session"):
-            os.makedirs("session")
+        # 如果sessions目录不存在，就创建一个
+        if not os.path.exists("sessions"):
+            os.makedirs("sessions")
 
         # 保存会话数据
-        with open(f"session/{st.session_state.current_session}.json", "w", encoding="utf-8") as f:
+        with open(f"sessions/{st.session_state.current_session}.json", "w", encoding="utf-8") as f:
             json.dump(session_date, f, ensure_ascii=False, indent=2)
 
 #生成会话名字函数
@@ -29,17 +29,45 @@ def generate_session_name():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 #加载所有会话列表信息
-def load_session_list():
+def load_sessions():
     session_list = []
-    if os.path.exists("session"):
-        file_list = os.listdir("session")
+    if os.path.exists("sessions"):
+        file_list = os.listdir("sessions")
         for filename in file_list:
             if filename.endswith(".json"):
                 session_list.append(filename[:-5])
 
     return session_list
 
-#设置页面配置项
+#加载当前会话信息
+def load_session(session_name):
+    try:
+        if os.path.exists(f"sessions/{session_name}.json"):
+            #读取信息
+            with open(f"sessions/{session_name}.json","r",encoding="utf-8") as f:
+                session_data = json.load(f)
+                st.session_state.messages = session_data["messages"]
+                st.session_state.nick_name = session_data["nick_name"]
+                st.session_state.nature = session_data["nature"]
+                st.session_state.current_session = session_name
+    except Exception:
+        st.error("加载会话失败")
+
+#删除会话
+def delete_session(session_name):
+    try:
+        if os.path.exists(f"sessions/{session_name}.json"):
+            os.remove(f"sessions/{session_name}.json")
+            #如果删除当前会话，需要更新列表信息
+            if session_name == st.session_state.current_session:
+                st.session_state.messages = []
+                st.session_state.current_session = generate_session_name()
+    except Exception:
+        st.error("删除失败")
+
+
+
+    #设置页面配置项
 st.set_page_config(
     page_title="AI智能伴侣",
     page_icon="🤖",
@@ -71,6 +99,7 @@ if "current_session" not in st.session_state:
 
 
 #展示聊天信息
+st.text(f"会话名称:{st.session_state.current_session}")
 for message in st.session_state.messages:#存储类型：{"role": "user或assistant", "content": prompt}
     st.chat_message(message["role"]).write(message["content"])
 
@@ -105,17 +134,20 @@ with st.sidebar:
 
     #会话历史
     st.text("会话历史")
-    session_list = load_session_list()
+    session_list = load_sessions()
     for session in session_list:
         col1,col2 = st.columns([4,1])
         with col1:
-            #加载会话信息
-            if st.button(session,width="stretch",icon="📄",key=f"load_{session}"):
-                pass
+            #加载会话信息    三元运算符来判断当前加载的所有会话中哪个是打开的，就标红
+            if st.button(session,width="stretch",icon="📄",key=f"load_{session}",type="primary" if session == st.session_state.current_session else "secondary"):
+                load_session(session)
+                st.rerun()
+
         with col2:
             #删除按键
             if st.button("",width="stretch",icon="❌",key=f"delete_{session}"):
-                pass
+                delete_session(session)
+                st.rerun()
 
     #新建会话
     if st.button("新建会话",width="stretch",icon = "🖊"):
@@ -174,3 +206,4 @@ if prompt:
 
     #保存大模型回复
     st.session_state.messages.append({"role": "assistant", "content": full_response})
+    save_session()
