@@ -37,6 +37,7 @@ def load_sessions():
             if filename.endswith(".json"):
                 session_list.append(filename[:-5])
 
+    session_list.sort(reverse=True)
     return session_list
 
 #加载当前会话信息
@@ -160,7 +161,8 @@ with st.sidebar:
             save_session()
             st.rerun()        #重新运行页面,保证新页面能渲染出来
 
-
+    #分割线
+    st.divider()
 
     st.subheader("伴侣设置")
     #昵称
