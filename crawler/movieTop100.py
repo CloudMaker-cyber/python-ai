@@ -9,12 +9,32 @@
 import requests
 import csv
 from lxml import html
+import re
 
 #常量
 MOVIE_LIST_FILE = "csv_data/movie_list.csv"
 TMDB_BASE_URL = "https://www.themoviedb.org"
 TMDB_TOP_URL1 = "https://www.themoviedb.org/movie/top-rated?language=zh-CN"
 TMDB_TOP_URL2 = "https://www.themoviedb.org/discover/movie/items"
+
+#获取电影年份
+def get_movie_year(movie_years):
+    movie_year = movie_years[0].strip() if movie_years else ""
+    return movie_year.replace("(","").replace(")","")
+
+#获取电影上映时间
+def get_movie_release_dates(movie_release_dates):
+    movie_release_date = movie_release_dates[0].strip() if movie_release_dates else ""
+    return re.search(r'\d{4}-\d{2}-\d{2}', movie_release_date).group() if movie_release_date else ""
+
+
+def get_movie_durations(movie_durations):
+    movie_duration =  movie_durations[0].strip() if movie_durations else ""
+    h_res = re.search(r"(\d+)h", movie_duration)
+    m_res = re.search(r"(\d+)m", movie_duration)
+    h = int(h_res.group(1)) if h_res else 0#因为前面用（）来分组了，所以需要用group(1)获取
+    m = int(m_res.group(1)) if m_res else 0
+    return h * 60 + m
 
 #获取电影详细数据
 def get_movie_info(movie_info_url):
@@ -40,10 +60,10 @@ def get_movie_info(movie_info_url):
     #返回字典类型数据
     movie_info = {
         "电影名": movie_names[0].strip() if movie_names else "",
-        "年份": movie_years[0].strip() if movie_years else "",
-        "上映时间": movie_release_dates[0].strip() if movie_release_dates else "",
+        "年份": get_movie_year(movie_years),
+        "上映时间": get_movie_release_dates(movie_release_dates),
         "类型": movie_genres[0].strip() if movie_genres else "",
-        "时长": movie_durations[0].strip() if movie_durations else "",
+        "时长": get_movie_durations(movie_durations),
         "评分": movie_scores[0].strip() if movie_scores else "",
         "语言": movie_languages[0].strip() if movie_languages else "",
         "导演": movie_directors[0].strip() if movie_directors else "",
