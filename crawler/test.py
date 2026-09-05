@@ -1,6 +1,6 @@
 import requests
 from lxml import html
-
+import matplotlib.pyplot as plt
 #定义url
 target_url = "https://www.tiobe.com/tiobe-index/"
 

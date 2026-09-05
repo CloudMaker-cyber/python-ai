@@ -87,7 +87,7 @@ def save_all_movies(all_movies):
 def main():
     all_movies = []  # 所有电影信息列表
     #循环获取电影列表数据
-    for page_num in range(1,6):
+    for page_num in range(1,16):
         # 1.发送请求，获取电影榜单数据
         if page_num == 1:
             response = requests.get(TMDB_TOP_URL1, timeout=60)
